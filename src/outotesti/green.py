@@ -128,3 +128,23 @@ def random_topology_with_lengths(
         for i, (u, v, _) in enumerate(prototype.edges)
     )
     return Tree(n_leaves, edges)
+
+
+
+def relabel_leaves(
+    tree: Tree,
+    permutation: np.ndarray,
+) -> Tree:
+    """Relabel leaf identities while preserving the exact unlabeled tree and lengths."""
+    permutation = np.asarray(permutation, dtype=int)
+    if permutation.shape != (tree.n_leaves,):
+        raise ValueError("permutation must have one entry per leaf")
+    if set(permutation.tolist()) != set(range(tree.n_leaves)):
+        raise ValueError("permutation must be a bijection")
+
+    edges = []
+    for u, v, w in tree.edges:
+        uu = int(permutation[u]) if u < tree.n_leaves else u
+        vv = int(permutation[v]) if v < tree.n_leaves else v
+        edges.append((uu, vv, float(w)))
+    return Tree(tree.n_leaves, tuple(edges))
