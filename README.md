@@ -247,15 +247,48 @@ matrix it helped fit, and raw reconstruction remains poor.
 
 See [REAL2](results/REAL2.md).
 
+## REAL3 — the learned structure transfers unlabeled, not as a labeled circuit
+
+Q-derived trees were frozen and used to fit K, and K-derived trees were used to
+fit Q. The entire experiment was repeated in a fresh random-initialized copy of
+the exact architecture.
+
+```text
+                               TRAINED       RANDOM INIT
+
+median Q/K geometry z           +5.060          -0.237
+median gain vs random topology  +0.04693        +0.00120
+beats all random topologies     16 / 16          7 / 16
+```
+
+So training produces a large structural effect.
+
+But permuting the leaf identities on the **same exact source tree** costs
+essentially nothing:
+
+```text
+trained median label-shuffle gain   -0.00036
+positive label gain                  6 / 16
+```
+
+Therefore REAL3 does **not** support a reusable labeled Q/K tree circuit.
+
+See [REAL3](results/REAL3.md).
+
 ## Current stopping line
 
-Do not scale yet. REAL3 must remove the same-matrix circularity:
+Do not scale. Q and K separately are not the final functional object anyway.
 
-> infer topology from Q and test it on K in the same layer, then reverse the
-> direction; compare against same-length random topologies and against a fresh
-> random-initialized copy of the exact architecture.
+For each attention head, the actual pre-softmax token-pair score is controlled
+by the gauge-invariant bilinear operator
 
-If topology transfers between independently learned Q/K projections and is
-stronger after training than at initialization, then "learned reusable channel
-geometry" becomes a serious hypothesis. If not, REAL2 remains an in-sample
-geometry-fitting effect.
+```text
+M_h = W_Q,h^T W_K,h
+score_h(x,y) = x M_h y^T
+```
+
+REAL4 must audit these 32 head-wise score operators against the same spectrum,
+random-topology, label-shuffle, and random-initialization attackers.
+
+If graph structure survives there, we finally have evidence about the thing
+attention **uses**, rather than a convenient basis chosen by Q or K separately.
