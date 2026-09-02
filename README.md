@@ -134,30 +134,82 @@ D. nothing is tree-like; SVD wins everywhere
 
 D is a perfectly good result. It says the graph-generated family is the wrong instrument for those learned matrices.
 
-## Planned ladder
+## First real receipt — TinyStories-1M says **not yet**
+
+The full 32-matrix Q/K/V/output audit has now run on the actually trained
+TinyStories-1M model, including one-at-a-time replacement back into the model.
+
+```text
+median relative matrix error
+
+inferred tree            0.90993
+random tree              0.91027
+matched-budget SVD       0.91029
+top-|weight| sparse      0.78884
+
+median |tree-random|     0.00010
+median |tree-SVD|        0.00007
+```
+
+The inferred topology is therefore doing essentially no work in v0.1. The
+tree fit behaves almost like the rank-1 SVD attacker, while sparse weights
+usually reconstruct the matrix substantially better.
+
+The functional replacement experiment is also mixed rather than rescuing the
+tree:
+
+```text
+median mean-logit KL
+
+tree                     0.4404
+SVD                      0.4432
+sparse                   0.3601
+
+median next-token argmax agreement
+tree / SVD / sparse      0.6818 / 0.6818 / 0.6818
+```
+
+Individual matrices do show cases where Frobenius error and behavioral damage
+disagree. That is worth keeping as a diagnostic. It is **not** evidence for
+hidden tree geometry.
+
+See [the full receipt](results/REAL1.md) and the
+[32-matrix table](results/tinystories_1m/matrix_audit.csv).
+
+## Revised ladder
 
 ```text
 SANITY
-known tree / random dense
+known tree / random dense                    PASS
 
 REAL 1
-TinyStories-1M        d=64
+TinyStories-1M, radial tree kernel           NEGATIVE
+                                             topology adds ~nothing
 
-REAL 2
-TinyStories-8M        d=256
+NEXT
+stay at d=64:
+  A. test tree-likeness of induced channel geometry against
+     spectrum/dimension-matched random controls
+  B. test a genuinely graph-resolvent / Green-operator family
 
-REAL 3
-DistilGPT2            d=768
+ONLY IF one becomes topology-sensitive:
+TinyStories-8M -> DistilGPT2
 ```
 
-Do not scale until the 64-dimensional test tells us whether the diagnostic has any signal.
+Do not scale merely because the code works.
 
-## Stopping line
+## Current stopping line
 
-A small tree residual by itself does **not** mean a learned layer "is routing" or "learned geometry."
+The quick story
 
-The first claim this repo can earn is much narrower:
+> "trained transformer matrix -> neighbor-joining tree -> circuit diagram"
 
-> a particular trained matrix is unusually well approximated by this graph-generated operator family relative to explicit low-rank, sparse, and random-topology attackers, and replacing the matrix by that approximation causes measured model damage.
+is **not supported** by the first real model.
 
-Only after that would it be worth interpreting the inferred topology.
+The v0.1 family
+`diag(a) exp(-alpha d_tree) diag(b)` is too restrictive and is effectively
+topology-insensitive on TinyStories-1M.
+
+The repo earns a next gate only if a new test can distinguish **inferred
+topology from random topology** at d=64. Until then, call the residual
+"non-graph residual", not computation, routing, or hidden geometry.
