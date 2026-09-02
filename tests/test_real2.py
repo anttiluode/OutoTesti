@@ -1,7 +1,7 @@
 import numpy as np
 
 from outotesti.geometry import geometry_null_audit
-from outotesti.green import fit_green_operator, green_leaf_kernel, random_topology_with_lengths
+from outotesti.green import fit_green_operator, green_leaf_kernel, random_topology_with_lengths, relabel_leaves
 from outotesti.tree import random_binary_tree
 
 
@@ -38,3 +38,16 @@ def test_geometry_null_is_finite():
     result = geometry_null_audit(W, controls=8, quartets=200, seed=1)
     assert np.isfinite(result["p95_gap"]["tree_likeness_z"])
     assert 0 < result["p95_gap"]["empirical_p_lower"] <= 1
+
+
+
+def test_relabel_leaves_preserves_unlabeled_lengths():
+    rng = np.random.default_rng(13)
+    tree = random_binary_tree(10, rng)
+    perm = rng.permutation(10)
+    relabeled = relabel_leaves(tree, perm)
+    assert np.allclose(
+        np.sort([w for _, _, w in tree.edges]),
+        np.sort([w for _, _, w in relabeled.edges]),
+    )
+    assert relabeled.n_nodes == tree.n_nodes
