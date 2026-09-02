@@ -102,3 +102,109 @@ def geometry_null_audit(
         "median_gap": summarize(observed["median_gap"], null_median),
         "p95_gap": summarize(observed["p95_gap"], null_p95),
     }
+
+
+
+def quartet_split_ids(D: np.ndarray, quartets: np.ndarray) -> np.ndarray:
+    """Return the four-point split selected by each quartet.
+
+    For an additive tree metric the smallest of the three pair-sums identifies
+    the bipartition. Values 0/1/2 correspond to ij|kl, ik|jl, il|jk.
+    """
+    D = np.asarray(D, dtype=float)
+    q = np.asarray(quartets, dtype=int)
+    if q.size == 0:
+        return np.empty(0, dtype=np.int8)
+    i, j, k, l = q.T
+    sums = np.stack(
+        [
+            D[i, j] + D[k, l],
+            D[i, k] + D[j, l],
+            D[i, l] + D[j, k],
+        ],
+        axis=1,
+    )
+    return np.argmin(sums, axis=1).astype(np.int8)
+
+
+def quartet_heldout_stability(
+    W: np.ndarray,
+    *,
+    splits: int = 4,
+    quartets: int = 4096,
+    seed: int = 0,
+) -> dict:
+    """Infer quartet splits from half the columns and test them on the other half."""
+    W = np.asarray(W, dtype=float)
+    if W.ndim != 2 or W.shape[1] < 4:
+        raise ValueError("W must be 2-D with at least four columns")
+
+    rng = np.random.default_rng(seed)
+    qs = sampled_quartets(W.shape[0], quartets, seed=seed + 7919)
+    agreements = []
+
+    for _ in range(splits):
+        cols = rng.permutation(W.shape[1])
+        cut = W.shape[1] // 2
+        D_train = channel_distance(W[:, cols[:cut]])
+        D_test = channel_distance(W[:, cols[cut:]])
+        train_split = quartet_split_ids(D_train, qs)
+        test_split = quartet_split_ids(D_test, qs)
+        agreements.append(float(np.mean(train_split == test_split)))
+
+    return {
+        "splits": int(splits),
+        "quartets": int(len(qs)),
+        "median_agreement": float(np.median(agreements)),
+        "mean_agreement": float(np.mean(agreements)),
+        "agreements": agreements,
+    }
+
+
+def spectrum_matched_quartet_stability_audit(
+    W: np.ndarray,
+    *,
+    controls: int = 32,
+    splits: int = 4,
+    quartets: int = 4096,
+    seed: int = 0,
+) -> dict:
+    """Compare held-out quartet topology with exact-spectrum orientation nulls."""
+    W = np.asarray(W, dtype=float)
+    observed = quartet_heldout_stability(
+        W, splits=splits, quartets=quartets, seed=seed
+    )
+
+    m, n = W.shape
+    s = np.linalg.svd(W, compute_uv=False)
+    rng = np.random.default_rng(seed + 104729)
+    null = np.empty(controls, dtype=float)
+
+    for c in range(controls):
+        Qa, _ = np.linalg.qr(rng.normal(size=(m, m)))
+        Qb, _ = np.linalg.qr(rng.normal(size=(n, n)))
+        S = np.zeros((m, n), dtype=float)
+        r = min(m, n, len(s))
+        S[np.arange(r), np.arange(r)] = s[:r]
+        W0 = Qa @ S @ Qb.T
+        null[c] = quartet_heldout_stability(
+            W0, splits=splits, quartets=quartets, seed=seed
+        )["median_agreement"]
+
+    obs = float(observed["median_agreement"])
+    std = float(np.std(null, ddof=1)) if len(null) > 1 else 0.0
+    return {
+        "observed": observed,
+        "null": "exact singular spectrum, randomized left/right orientation",
+        "controls": int(controls),
+        "null_median_agreement": float(np.median(null)),
+        "null_mean_agreement": float(np.mean(null)),
+        "null_std_agreement": std,
+        "agreement_gain": float(obs - np.median(null)),
+        "stability_z": float(
+            (obs - np.mean(null)) / max(std, 1e-12)
+        ) if len(null) > 1 else 0.0,
+        "empirical_p_upper": float(
+            (1 + np.sum(null >= obs)) / (len(null) + 1)
+        ),
+    }
