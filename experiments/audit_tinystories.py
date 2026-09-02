@@ -70,9 +70,9 @@ def behavior_damage(model, batch, reference, parameter, replacement):
         agreement = (
             reference.argmax(dim=-1) == logits.argmax(dim=-1)
         ).float().mean()
-        rel = torch.linalg.vector_norm(logits - reference) / max(
+        rel = torch.linalg.vector_norm(logits - reference) / torch.clamp_min(
             torch.linalg.vector_norm(reference),
-            torch.tensor(1e-12),
+            1e-12,
         )
         return {
             "mean_logit_KL": float(kl.item()),
