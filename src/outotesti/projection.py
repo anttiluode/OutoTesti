@@ -43,14 +43,56 @@ def fit_tree_kernel(W: np.ndarray, tree: Tree, *, alpha_grid=None) -> dict:
     if alpha_grid is None:
         alpha_grid = np.geomspace(0.05, 20.0, 49)
 
-    best = None
-    for alpha in alpha_grid:
-        K = np.exp(-float(alpha) * Dn)
-        a, b, W_hat = _fit_diag_wrappers(W, K)
-        err = relative_frobenius(W, W_hat)
-        candidate = (err, float(alpha), a, b, W_hat, K)
-        if best is None or err < best[0]:
-            best = candidate
+    alpha_grid = np.asarray(alpha_grid, dtype=float)
+    alpha_grid.sort()
+
+    def evaluate(alpha_value: float):
+        K_value = np.exp(-float(alpha_value) * Dn)
+        a_value, b_value, W_hat_value = _fit_diag_wrappers(W, K_value)
+        err_value = relative_frobenius(W, W_hat_value)
+        return (
+            float(err_value),
+            float(alpha_value),
+            a_value,
+            b_value,
+            W_hat_value,
+            K_value,
+        )
+
+    grid_results = [evaluate(float(alpha)) for alpha in alpha_grid]
+    best_idx = int(np.argmin([x[0] for x in grid_results]))
+    best = grid_results[best_idx]
+
+    # Refine continuously in log(alpha) around the best grid point. This is
+    # important for the sanity gate: a matrix generated exactly by this family
+    # should not retain projection error merely because alpha missed a grid bin.
+    lo_idx = max(0, best_idx - 1)
+    hi_idx = min(len(alpha_grid) - 1, best_idx + 1)
+    lo = float(np.log(alpha_grid[lo_idx]))
+    hi = float(np.log(alpha_grid[hi_idx]))
+
+    if hi > lo:
+        phi = (1.0 + np.sqrt(5.0)) / 2.0
+        x1 = hi - (hi - lo) / phi
+        x2 = lo + (hi - lo) / phi
+        r1 = evaluate(float(np.exp(x1)))
+        r2 = evaluate(float(np.exp(x2)))
+        for _ in range(36):
+            if r1[0] <= r2[0]:
+                hi = x2
+                x2 = x1
+                r2 = r1
+                x1 = hi - (hi - lo) / phi
+                r1 = evaluate(float(np.exp(x1)))
+            else:
+                lo = x1
+                x1 = x2
+                r1 = r2
+                x2 = lo + (hi - lo) / phi
+                r2 = evaluate(float(np.exp(x2)))
+        for candidate in (r1, r2, evaluate(float(np.exp(0.5 * (lo + hi))))):
+            if candidate[0] < best[0]:
+                best = candidate
 
     err, alpha, a, b, W_hat, K = best
     edge_count = len(tree.edges)
