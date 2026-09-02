@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "outotesti"
+version = "0.1.0"
+description = "Post-hoc audit: how much of a learned square weight matrix is explainable by a tree-generated operator?"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24"]
+
+[project.optional-dependencies]
+models = ["torch>=2.1", "transformers>=4.40"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+outotesti = "outotesti.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
