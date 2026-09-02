@@ -10,8 +10,23 @@ def _fit_diag_wrappers(W: np.ndarray, K: np.ndarray, *, iterations: int = 80):
     W = np.asarray(W, dtype=float)
     K = np.asarray(K, dtype=float)
     m, n = W.shape
-    b = np.ones(n, dtype=float)
-    a = np.ones(m, dtype=float)
+    # Signed diagonal wrappers make the objective bilinear. Starting both
+    # factors at +1 can converge to a poor stationary point when the true
+    # wrappers have mixed signs. Use the leading SVD of the elementwise ratio
+    # W/K as a sign-aware initializer, then optimize the actual weighted error.
+    kscale = max(float(np.max(np.abs(K))), 1e-15)
+    mask = np.abs(K) >= 1e-8 * kscale
+    ratio = np.zeros_like(W)
+    ratio[mask] = W[mask] / K[mask]
+
+    U0, s0, Vt0 = np.linalg.svd(ratio, full_matrices=False)
+    if len(s0) and s0[0] > 1e-15:
+        root = np.sqrt(float(s0[0]))
+        a = U0[:, 0] * root
+        b = Vt0[0, :] * root
+    else:
+        b = np.ones(n, dtype=float)
+        a = np.ones(m, dtype=float)
 
     for _ in range(iterations):
         KB = K * b[None, :]
