@@ -275,20 +275,45 @@ Therefore REAL3 does **not** support a reusable labeled Q/K tree circuit.
 
 See [REAL3](results/REAL3.md).
 
-## Current stopping line
+## REAL4 — gauge-invariant score operators: strong stability, strict tree test fails
 
-Do not scale. Q and K separately are not the final functional object anyway.
-
-For each attention head, the actual pre-softmax token-pair score is controlled
-by the gauge-invariant bilinear operator
+The actual head score operator was audited:
 
 ```text
-M_h = W_Q,h^T W_K,h
-score_h(x,y) = x M_h y^T
+M_h = W_Q,h^T W_K,h / sqrt(head_dim)
 ```
 
-REAL4 must audit these 32 head-wise score operators against the same spectrum,
-random-topology, label-shuffle, and random-initialization attackers.
+There are 128 heads (8 layers x 16 heads), with head dimension 4.
 
-If graph structure survives there, we finally have evidence about the thing
-attention **uses**, rather than a convenient basis chosen by Q or K separately.
+```text
+                                  TRAINED       RANDOM INIT
+
+four-point median z                +0.595          +0.010
+four-point p<.05                   20/128           2/128
+
+held-out leaf-label gain           +0.2436         +0.1235
+held-out random-topology gain      +0.2183         +0.1452
+trained heldout gain > init         116/128
+
+Green label-shuffle gain           +0.00384        +0.00273
+Green random-topology gain         +0.00261        +0.01233
+```
+
+So training creates a very large held-out relational-geometry effect, but the
+preregistered strict tree criterion and Green translation both fail.
+
+See [REAL4](results/REAL4.md).
+
+## Current stopping line
+
+The remaining confound is low rank: every head score operator has rank <=4.
+
+REAL5 must preserve the **exact singular values** of each M_h, randomize only
+its orientation, and ask a fitter-free question:
+
+> infer quartet splits from half the columns; do the same quartet splits recur
+> in the held-out half more often than in exact-spectrum randomized controls?
+
+If not, the large REAL4 held-out effect is generic low-dimensional geometry.
+If yes, we finally have spectrum-controlled evidence for stable tree-like
+topology in the functional attention score operator.
