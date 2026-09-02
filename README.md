@@ -198,18 +198,64 @@ TinyStories-8M -> DistilGPT2
 
 Do not scale merely because the code works.
 
+## REAL2 — inferred topology finally becomes measurable
+
+The preregistered d=64 rescue used two harder tests.
+
+First, row-channel geometry was compared with 64 null matrices per projection
+that preserve the **exact singular spectrum** while randomizing singular-vector
+orientation:
+
+```text
+median tree-likeness z          +1.119
+empirical p<.05                 15 / 32
+```
+
+Second, the radial kernel was replaced by a true leaky tree Green operator:
+
+```text
+K = [(L_tree + leak I)^-1]_leaves
+W_hat = diag(a) K diag(b)
+```
+
+Random topology controls received exactly the inferred tree's branch-length
+multiset.
+
+```text
+median inferred Green error       0.91002
+median random-topology error      0.92858
+median topology gain             +0.02049
+positive gain                    32 / 32
+inferred beats all random trees  32 / 32
+```
+
+Both preregistered criteria pass.
+
+The unexpected split is concentrated in Q/K:
+
+```text
+family   median geometry z   median Green topology gain
+
+Q             +3.329                  +0.04235
+K             +5.101                  +0.04939
+V             +0.512                  +0.00427
+OUT           +0.031                  +0.00636
+```
+
+This is **not yet hidden-tree evidence**: topology was inferred from the same
+matrix it helped fit, and raw reconstruction remains poor.
+
+See [REAL2](results/REAL2.md).
+
 ## Current stopping line
 
-The quick story
+Do not scale yet. REAL3 must remove the same-matrix circularity:
 
-> "trained transformer matrix -> neighbor-joining tree -> circuit diagram"
+> infer topology from Q and test it on K in the same layer, then reverse the
+> direction; compare against same-length random topologies and against a fresh
+> random-initialized copy of the exact architecture.
 
-is **not supported** by the first real model.
-
-The v0.1 family
-`diag(a) exp(-alpha d_tree) diag(b)` is too restrictive and is effectively
-topology-insensitive on TinyStories-1M.
-
-The repo earns a next gate only if a new test can distinguish **inferred
-topology from random topology** at d=64. Until then, call the residual
-"non-graph residual", not computation, routing, or hidden geometry.
+If topology transfers between independently learned Q/K projections and is
+stronger after training than at initialization, then "learned reusable channel
+geometry" becomes a serious hypothesis. If not, REAL2 remains an in-sample
+geometry-fitting effect.
