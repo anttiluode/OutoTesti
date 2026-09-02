@@ -47,6 +47,7 @@ def fit_green_operator(
     *,
     leak_grid: np.ndarray | None = None,
     exponents: tuple[float, ...] = (1.0,),
+    wrapper_iterations: int = 40,
 ) -> dict:
     """Fit W ~= diag(a) G_tree(leak) diag(b).
 
@@ -72,7 +73,9 @@ def fit_green_operator(
             )
             # Normalize only for conditioning; diagonal wrappers absorb scale.
             K = K / max(float(np.linalg.norm(K)), 1e-15)
-            a, b, W_hat = _fit_diag_wrappers(W, K)
+            a, b, W_hat = _fit_diag_wrappers(
+                W, K, iterations=int(wrapper_iterations)
+            )
             err = relative_frobenius(W, W_hat)
             candidate = (
                 float(err),
