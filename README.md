@@ -304,16 +304,49 @@ preregistered strict tree criterion and Green translation both fail.
 
 See [REAL4](results/REAL4.md).
 
+## REAL5 — low rank explains the apparent functional tree
+
+The fitter-free quartet test preserved every head score operator's **exact
+singular values** while randomizing only orientation.
+
+```text
+trained observed quartet agreement      0.9011
+exact-spectrum null                     0.8997
+median agreement gain                  -0.0027
+median z                               -0.155
+p < .05                                 0 / 128
+
+random-init median gain                -0.0008
+trained - init gain                    -0.0019
+```
+
+Classification:
+
+`HELDOUT_TREE_EFFECT_EXPLAINED_BY_SPECTRAL_GEOMETRY`
+
+So the large REAL4 effect was real low-dimensional/spectral structure, not
+stable tree topology.
+
+See [REAL5](results/REAL5.md).
+
 ## Current stopping line
 
-The remaining confound is low rank: every head score operator has rank <=4.
+One apparent positive remains: REAL2's strong tree-like geometry in **raw Q/K
+weights**. But raw Q and K have a function-preserving gauge freedom.
 
-REAL5 must preserve the **exact singular values** of each M_h, randomize only
-its orientation, and ask a fitter-free question:
+REAL6 applies independent orthogonal rotations inside every head to Q and K
+together:
 
-> infer quartet splits from half the columns; do the same quartet splits recur
-> in the held-out half more often than in exact-spectrum randomized controls?
+```text
+W_Q,h' = R_h^T W_Q,h
+W_K,h' = R_h^T W_K,h
 
-If not, the large REAL4 held-out effect is generic low-dimensional geometry.
-If yes, we finally have spectrum-controlled evidence for stable tree-like
-topology in the functional attention score operator.
+W_Q,h'^T W_K,h' = W_Q,h^T W_K,h
+```
+
+Attention scores are unchanged exactly.
+
+If the raw Q/K tree diagnostics move under these rotations, the remaining tree
+signal is coordinate/gauge dependent rather than a property of the learned
+function. After that test, stop the TinyStories tree chase rather than inventing
+a more flexible fitter.
