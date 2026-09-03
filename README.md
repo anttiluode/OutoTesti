@@ -402,20 +402,41 @@ Classification:
 
 See [REAL8](results/REAL8.md).
 
-## Current stopping line
+## REAL9 — tree-specificity fails
 
-The replicated object is now **shared gauge-invariant Q/K head-subspace
-geometry**. Whether the word `hierarchy` is justified is still open.
-
-REAL9 compares the Q-derived tree with simpler source-derived descriptions:
+Across both trained models:
 
 ```text
-raw source metric      uncompressed ceiling
-star                   16 leaf radii
-NJ tree                29 branch lengths + topology
-2-D classical MDS      32 nominal coordinates
+raw source metric error        0.0338
+star error                     0.0349
+NJ tree error                  0.0327
+MDS2 error                     0.4349
+
+tree vs star gain             +0.0014
+
+tree vs MDS2 gain trained     +0.3921
+tree vs MDS2 gain init        +0.3997
+trained - init                -0.0076
 ```
 
-All are frozen before seeing the target K geometry except for one target scale.
-If 2-D MDS matches or beats the tree, keep the relational-geometry result but
-drop the tree claim.
+The 2-D MDS mismatch is generic; the star nearly matches the full tree.
+
+Classification:
+
+`SHARED_HEAD_GEOMETRY_NOT_TREE_SPECIFIC`
+
+See [REAL9](results/REAL9.md).
+
+## Current stopping line
+
+Stop fitting graphs.
+
+The replicated result is now named exactly what the attackers support:
+
+> **shared gauge-invariant Q/K attention-head subspace geometry**
+
+REAL10 asks the functional question: do head pairs that are close in this
+weight-space geometry also behave similarly on actual text?
+
+If yes, extract a reusable head-geometry interpretability audit. If no, stop at
+the parameter-organization result.
