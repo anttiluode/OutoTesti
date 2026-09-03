@@ -427,16 +427,40 @@ Classification:
 
 See [REAL9](results/REAL9.md).
 
+## REAL10 — the surviving geometry predicts attention behavior
+
+Across both trained models:
+
+```text
+behavior split-half reliability       +0.963
+median weight->behavior correlation   +0.385
+positive correlation                   15/16
+permutation p<.05                      13/16
+
+random-init median correlation        -0.003
+trained - init                        +0.387
+trained better than init               15/16
+```
+
+Classification:
+
+`HEAD_SUBSPACE_GEOMETRY_PREDICTS_ATTENTION_BEHAVIOR`
+
+See [REAL10](results/REAL10.md).
+
 ## Current stopping line
 
-Stop fitting graphs.
+The research chase is complete. Do not add another graph or tree gate.
 
-The replicated result is now named exactly what the attackers support:
+The extracted useful object is:
 
-> **shared gauge-invariant Q/K attention-head subspace geometry**
+> **gauge-invariant Q/K attention-head subspace geometry**
 
-REAL10 asks the functional question: do head pairs that are close in this
-weight-space geometry also behave similarly on actual text?
+It can be computed cheaply from weights alone. On the two tested trained models,
+head pairs close in that geometry also tended to have similar attention-map
+behavior on text.
 
-If yes, extract a reusable head-geometry interpretability audit. If no, stop at
-the parameter-organization result.
+The next work is software extraction: a small `head-geometry` command that
+reports weight-only Q/K geometry and can optionally validate it against
+user-supplied text. It must not describe the result as a hidden tree, head
+semantics, causal importance, or graph-derived transformer weights.
