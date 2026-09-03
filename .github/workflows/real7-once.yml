@@ -1,0 +1,29 @@
+name: REAL7 one-shot
+
+on:
+  push:
+    paths:
+      - ".github/workflows/real7-once.yml"
+      - "experiments/real7_head_subspace_hierarchy.py"
+      - "src/outotesti/subspace.py"
+      - "src/outotesti/stability.py"
+      - "src/outotesti/green.py"
+
+jobs:
+  real7:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install CPU torch
+        run: python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+      - name: Install OutoTesti model dependencies
+        run: python -m pip install -e . transformers
+      - name: Run REAL7
+        run: python experiments/real7_head_subspace_hierarchy.py --model roneneldan/TinyStories-1M --controls 128 --init-seed 20260903
+      - uses: actions/upload-artifact@v4
+        with:
+          name: outotesti-real7
+          path: results/real7/
