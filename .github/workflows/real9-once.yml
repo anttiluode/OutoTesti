@@ -1,0 +1,28 @@
+name: REAL9 one-shot
+
+on:
+  push:
+    paths:
+      - ".github/workflows/real9-once.yml"
+      - "experiments/real9_tree_specificity.py"
+      - "src/outotesti/metric_compression.py"
+      - "src/outotesti/subspace.py"
+
+jobs:
+  real9:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install CPU torch
+        run: python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+      - name: Install OutoTesti model dependencies
+        run: python -m pip install -e . transformers
+      - name: Run REAL9 tree-specificity attack
+        run: python experiments/real9_tree_specificity.py --init-seed 20260903
+      - uses: actions/upload-artifact@v4
+        with:
+          name: outotesti-real9
+          path: results/real9/
