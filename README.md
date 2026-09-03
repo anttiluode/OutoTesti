@@ -379,15 +379,43 @@ Classification:
 
 See [REAL7](results/REAL7.md).
 
+## REAL8 — the head-subspace result replicates unchanged
+
+The locked REAL7 protocol was rerun on `roneneldan/TinyStories-Instruct-1M`.
+
+```text
+                               TRAINED       RANDOM INIT
+
+median label-shuffle gain       +0.0108         -0.0001
+positive label gain              14/16            7/16
+
+median Q/K distance corr        +0.515          -0.026
+permutation p<.05 layers          6/8              0/8
+
+trained - init label gain       +0.0109
+trained better than init         14/16
+```
+
+Classification:
+
+`REAL7_HEAD_SUBSPACE_HIERARCHY_REPLICATES`
+
+See [REAL8](results/REAL8.md).
+
 ## Current stopping line
 
-Do not enlarge the model or change the metric yet.
+The replicated object is now **shared gauge-invariant Q/K head-subspace
+geometry**. Whether the word `hierarchy` is justified is still open.
 
-Replicate the locked REAL7 protocol on a separately trained model with the same
-architecture: `roneneldan/TinyStories-Instruct-1M`.
+REAL9 compares the Q-derived tree with simpler source-derived descriptions:
 
-If it replicates, the next question is **tree-specificity**: is a 16-leaf tree a
-particularly good compressed description of the shared Q/K head-subspace
-geometry, or is ordinary low-dimensional/metric structure doing all the work?
+```text
+raw source metric      uncompressed ceiling
+star                   16 leaf radii
+NJ tree                29 branch lengths + topology
+2-D classical MDS      32 nominal coordinates
+```
 
-If it does not replicate, keep REAL7 as a TinyStories-1M-specific observation.
+All are frozen before seeing the target K geometry except for one target scale.
+If 2-D MDS matches or beats the tree, keep the relational-geometry result but
+drop the tree claim.
