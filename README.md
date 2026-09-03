@@ -354,16 +354,40 @@ The preregistered gauge-kill criterion therefore fails.
 
 See [REAL6](results/REAL6.md).
 
+## REAL7 — the gauge-invariant head-subspace geometry passes
+
+Each attention head was represented by its 4-D row subspace in the 64-D residual
+stream. A Q-derived 16-head hierarchy was frozen and tested on K head-subspace
+geometry, and vice versa.
+
+```text
+                               TRAINED       RANDOM INIT
+
+median label-shuffle gain       +0.0131         -0.0001
+positive label gain              14/16            7/16
+
+median Q/K distance corr        +0.448          -0.026
+permutation p<.05 layers          6/8              0/8
+
+trained - init label gain       +0.0132
+trained better than init         14/16
+```
+
+Classification:
+
+`GAUGE_INVARIANT_HEAD_SUBSPACE_HIERARCHY_PRESENT`
+
+See [REAL7](results/REAL7.md).
+
 ## Current stopping line
 
-Individual Q/K coordinates are still non-identifiable. What survived the gauge
-is each head's **4-D row subspace** in the 64-D residual-stream space.
+Do not enlarge the model or change the metric yet.
 
-REAL7 moves up one level:
+Replicate the locked REAL7 protocol on a separately trained model with the same
+architecture: `roneneldan/TinyStories-Instruct-1M`.
 
-> represent each of the 16 heads by its gauge-invariant row subspace; infer a
-> 16-leaf hierarchy from Q head-subspace geometry and test whether it predicts K
-> head-subspace geometry in the same layer, then reverse Q/K.
+If it replicates, the next question is **tree-specificity**: is a 16-leaf tree a
+particularly good compressed description of the shared Q/K head-subspace
+geometry, or is ordinary low-dimensional/metric structure doing all the work?
 
-Use leaf-label shuffles, same-length random topologies, and a fresh random-init
-model. If that fails, stop the tree chase completely.
+If it does not replicate, keep REAL7 as a TinyStories-1M-specific observation.
