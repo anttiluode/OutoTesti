@@ -329,24 +329,41 @@ stable tree topology.
 
 See [REAL5](results/REAL5.md).
 
-## Current stopping line
+## REAL6 — exact Q/K gauge weakens the signal, but does not erase it
 
-One apparent positive remains: REAL2's strong tree-like geometry in **raw Q/K
-weights**. But raw Q and K have a function-preserving gauge freedom.
-
-REAL6 applies independent orthogonal rotations inside every head to Q and K
-together:
+Independent orthogonal rotations were applied inside every head to Q and K
+together. Attention scores and model behavior were preserved:
 
 ```text
-W_Q,h' = R_h^T W_Q,h
-W_K,h' = R_h^T W_K,h
-
-W_Q,h'^T W_K,h' = W_Q,h^T W_K,h
+max head-score relative error      1.198e-15
+relative logit error               8.435e-7
+argmax agreement                   1.000
 ```
 
-Attention scores are unchanged exactly.
+Yet the raw Q/K tree diagnostic only partially collapsed:
 
-If the raw Q/K tree diagnostics move under these rotations, the remaining tree
-signal is coordinate/gauge dependent rather than a property of the learned
-function. After that test, stop the TinyStories tree chase rather than inventing
-a more flexible fitter.
+```text
+baseline median z                  +3.803
+random-gauge median z              +1.694
+median absolute z shift             1.577
+baseline significant               11 / 16
+median gauge significant fraction   0.562
+```
+
+The preregistered gauge-kill criterion therefore fails.
+
+See [REAL6](results/REAL6.md).
+
+## Current stopping line
+
+Individual Q/K coordinates are still non-identifiable. What survived the gauge
+is each head's **4-D row subspace** in the 64-D residual-stream space.
+
+REAL7 moves up one level:
+
+> represent each of the 16 heads by its gauge-invariant row subspace; infer a
+> 16-leaf hierarchy from Q head-subspace geometry and test whether it predicts K
+> head-subspace geometry in the same layer, then reverse Q/K.
+
+Use leaf-label shuffles, same-length random topologies, and a fresh random-init
+model. If that fails, stop the tree chase completely.
